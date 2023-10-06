@@ -102,8 +102,8 @@ extern uint64 sys_sbrk(void);
 extern uint64 sys_sleep(void);
 extern uint64 sys_unlink(void);
 extern uint64 sys_wait(void);
+extern uint64 sys_wait2(void);
 extern uint64 sys_write(void);
-extern uint64 sys_write2(void);
 extern uint64 sys_uptime(void);
 extern uint64 sys_getprocs(void);
 
