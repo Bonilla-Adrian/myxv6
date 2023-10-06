@@ -39,6 +39,15 @@ sys_wait(void)
 }
 
 uint64
+sys_wait2(void)
+{
+  uint64 p;
+  if(argaddr(0, &p) < 0)
+    return -1;
+  return wait2(p);
+}
+
+uint64
 sys_sbrk(void)
 {
   int addr;
