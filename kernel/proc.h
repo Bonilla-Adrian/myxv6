@@ -103,4 +103,8 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+
+  // Added fields for priority-based scheduling
+  int priority;                // Process priority (0 to 49)
+  uint64 readytime;            // Time when the process became ready to run
 };
