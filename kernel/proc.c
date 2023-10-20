@@ -689,14 +689,11 @@ int
 getpriority(int pid)
 {
   struct proc *p;
-  acquire(&ptable.lock);
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+  for(p = proc; p < &proc[NPROC]; p++){
     if(p->pid == pid){
-      release(&ptable.lock);
       return p->priority;
     }
   }
-  release(&ptable.lock);
   return -1; // Return -1 if process not found
 }
 
@@ -706,14 +703,12 @@ setpriority(int pid, int priority)
   struct proc *p;
   if(priority < 0 || priority > 49) // Check for valid priority range
     return -1;
-  acquire(&ptable.lock);
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+  for(p = proc; p < &proc[NPROC]; p++){
     if(p->pid == pid){
       p->priority = priority;
-      release(&ptable.lock);
       return 0; // Success
     }
   }
-  release(&ptable.lock);
   return -1; // Return -1 if process not found
 }
+

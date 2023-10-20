@@ -129,6 +129,7 @@ UPROGS=\
 	$U/_rm\
 	$U/_sh\
 	$U/_stressfs\
+	$U/_testpriority\
 	$U/_time1\
 	$U/_uptime\
 	$U/_usertests\
