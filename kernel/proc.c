@@ -434,7 +434,7 @@ wait(uint64 addr)
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
-//  - choose a process to run.
+//  - choose a process to run based on the scheduling policy defined in param.h.
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
@@ -446,24 +446,52 @@ scheduler(void)
   
   c->proc = 0;
   for(;;){
-    // Avoid deadlock by ensuring that devices can interrupt.
+    // Enable interrupts on this processor to avoid deadlock.
     intr_on();
 
-    for(p = proc; p < &proc[NPROC]; p++) {
-      acquire(&p->lock);
-      if(p->state == RUNNABLE) {
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
-        p->state = RUNNING;
-        c->proc = p;
-        swtch(&c->context, &p->context);
+    if (SCHED_TYPE == SCHED_DEFAULT) {
+      // Default scheduling: Round-robin.
+      for(p = proc; p < &proc[NPROC]; p++) {
+        acquire(&p->lock);
+        if(p->state == RUNNABLE) {
+          // Switch to chosen process. It is the process's job
+          // to release its lock and then reacquire it
+          // before jumping back to us.
+          p->state = RUNNING;
+          c->proc = p;
+          swtch(&c->context, &p->context);
+
+          // Process is done running for now.
+          // It should have changed its p->state before coming back.
+          c->proc = 0;
+        }
+        release(&p->lock);
+      }
+    } else if (SCHED_TYPE == SCHED_PRIORITY) {
+      // Priority-based scheduling.
+      struct proc *highestPriorityProc = 0;
+      for(p = proc; p < &proc[NPROC]; p++) {
+        acquire(&p->lock);
+        if(p->state == RUNNABLE) {
+          // Choose the process with the highest priority.
+          if (!highestPriorityProc || p->priority > highestPriorityProc->priority) {
+            highestPriorityProc = p;
+          }
+        }
+        release(&p->lock);
+      }
+      if (highestPriorityProc) {
+        // Switch to the highest priority process.
+        acquire(&highestPriorityProc->lock);
+        highestPriorityProc->state = RUNNING;
+        c->proc = highestPriorityProc;
+        swtch(&c->context, &highestPriorityProc->context);
 
         // Process is done running for now.
         // It should have changed its p->state before coming back.
         c->proc = 0;
+        release(&highestPriorityProc->lock);
       }
-      release(&p->lock);
     }
   }
 }
