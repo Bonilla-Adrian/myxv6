@@ -140,6 +140,9 @@ UPROGS=\
 	$U/_ps\
 	$U/_pstree\
 	$U/_pstest\
+	$U/_testschedeq\
+	$U/_testscheddiff\
+	$U/_testschedvar\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
