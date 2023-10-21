@@ -107,4 +107,9 @@ struct proc {
   // Added fields for priority-based scheduling
   int priority;                // Process priority (0 to 49)
   uint64 readytime;            // Time when the process became ready to run
+
+  //Number of ticks the process has been waiting
+  int wait_ticks;
+
 };
+

@@ -468,17 +468,27 @@ scheduler(void)
         release(&p->lock);
       }
     } else if (SCHED_TYPE == SCHED_PRIORITY) {
-      // Priority-based scheduling.
-      struct proc *highestPriorityProc = 0;
-      for(p = proc; p < &proc[NPROC]; p++) {
-        acquire(&p->lock);
-        if(p->state == RUNNABLE) {
-          // Choose the process with the highest priority.
-          if (!highestPriorityProc || p->priority > highestPriorityProc->priority) {
-            highestPriorityProc = p;
-          }
-        }
-        release(&p->lock);
+            struct proc *highestPriorityProc = 0;
+            for(p = proc; p < &proc[NPROC]; p++) {
+                acquire(&p->lock);
+                if(p->state == RUNNABLE) {
+                    p->wait_ticks++;  // Increment wait_ticks for each runnable process
+
+                    // If a process has been waiting for more than a threshold, increase its priority
+                    if(p->wait_ticks > AGING_THRESHOLD) {
+                        if(p->priority < MAX_PRIORITY) {
+                            p->priority++;
+                        }
+                        p->wait_ticks = 0;  // Reset wait_ticks after increasing priority
+                    }
+
+                    if (!highestPriorityProc || p->priority > highestPriorityProc->priority) {
+                        highestPriorityProc = p;
+                    }
+                } else {
+                    p->wait_ticks = 0;  // Reset wait_ticks if the process is not runnable
+                }
+                release(&p->lock);
       }
       if (highestPriorityProc) {
         // Switch to the highest priority process.

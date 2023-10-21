@@ -143,6 +143,8 @@ UPROGS=\
 	$U/_testschedeq\
 	$U/_testscheddiff\
 	$U/_testschedvar\
+	$U/_testaging1\
+	$U/_testaging2\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
