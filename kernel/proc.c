@@ -121,6 +121,7 @@ found:
   p->pid = allocpid();
   p->state = USED;
   p->readytime = 0;  // Initialize readytime to 0
+  p->wait_ticks = 0; //Initialize wait_ticks to 0
 
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
