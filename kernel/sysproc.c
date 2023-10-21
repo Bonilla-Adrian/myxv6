@@ -107,3 +107,23 @@ sys_getprocs(void)
     return -1;
   return(procinfo(addr));
 }
+
+// System call to get the priority of a process by its PID
+uint64
+sys_getpriority(void)
+{
+  int pid;
+  if(argint(0, &pid) < 0)
+    return -1;
+  return getpriority(pid);
+}
+
+// System call to set the priority of a process by its PID
+uint64
+sys_setpriority(void)
+{
+  int pid, priority;
+  if(argint(0, &pid) < 0 || argint(1, &priority) < 0)
+    return -1;
+  return setpriority(pid, priority);
+}

@@ -3,20 +3,33 @@
 #include "user/user.h"
 
 int
-main(void)
+main(int argc, char *argv[])
 {
-    int pid = fork();
-    if(pid == 0) { // Child process
-        printf("Child process (PID: %d) default priority:\n", getpid());
-        system("ps"); // Display process info using the modified ps command
+    int pid;
 
-        setpriority(getpid(), 10);
-        printf("\nChild process (PID: %d) priority after setting to 10:\n", getpid());
-        system("ps"); // Display process info again
+    // Fork a child process
+    pid = fork();
 
+    if (pid < 0) {
+        printf("Fork failed\n");
+        exit(1);
+    }
+
+    if (pid == 0) { // Child process
+        printf("Child process\n");
         exit(0);
     } else { // Parent process
-        wait(0);
+        printf("Parent process\n");
+
+        // Display process info using the modified ps command
+        if (fork() == 0) {
+            char *args[] = {"ps", 0};
+            exec("ps", args);
+            exit(0); // exit if exec fails
+        }
+        wait(0); // wait for the child process to finish
     }
+
     exit(0);
 }
+
