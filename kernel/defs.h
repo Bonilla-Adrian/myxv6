@@ -107,6 +107,7 @@ void            procdump(void);
 int             procinfo(uint64);
 int		getpriority(int pid);
 int		setpriority(int pid, int priority);
+uint64		freepmem(void);
 
 // swtch.S
 void            swtch(struct context*, struct context*);

@@ -27,6 +27,7 @@ int uptime(void);
 int getprocs(struct pstat*);
 int getpriority(int);
 int setpriority(int, int);
+uint64 freepmem(void);
 
 // ulib.c
 int stat(const char*, struct stat*);
