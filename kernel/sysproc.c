@@ -41,16 +41,26 @@ sys_wait(void)
 uint64
 sys_sbrk(void)
 {
-  int addr;
   int n;
 
   if(argint(0, &n) < 0)
     return -1;
-  addr = myproc()->sz;
-  if(growproc(n) < 0)
-    return -1;
-  return addr;
+  
+  // Get the current process's struct proc
+  struct proc *p = myproc();
+  
+  // Store the old size of the process's virtual memory space
+  // This is the value that will be returned by the sbrk() call
+  int oldsz = p->sz;
+  
+  // Update the process's size (sz) by adding the size increment (n)
+  // This expands the virtual memory space without allocating physical memory
+  p->sz += n;
+
+  // Return the old size of the virtual memory space
+  return oldsz;
 }
+
 
 uint64
 sys_sleep(void)
