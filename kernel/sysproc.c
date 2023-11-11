@@ -127,3 +127,10 @@ sys_setpriority(void)
     return -1;
   return setpriority(pid, priority);
 }
+
+//System call that returns the amount free physical memory
+uint64
+sys_freepmem(void)
+{
+ return nfreepages();
+}
