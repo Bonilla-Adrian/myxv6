@@ -68,9 +68,29 @@ usertrap(void)
   } else if((which_dev = devintr()) != 0){
     // ok
   } else {
-    printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
-    printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
-    p->killed = 1;
+    uint64 scause = r_scause();
+    uint64 stval = r_stval();
+
+    // Check for load or store fault using their specific cause codes
+    if (scause == 13 /* Load page fault */ || scause == 15 /* Store/AMO page fault */) {
+      if (stval < p->sz) {
+        char *mem = kalloc();
+        if (mem == 0) {
+          p->killed = 1;
+        } else {
+          if (mappages(p->pagetable, PGROUNDDOWN(stval), PGSIZE, (uint64)mem, PTE_W|PTE_X|PTE_R|PTE_U) != 0) {
+            kfree(mem);
+            p->killed = 1;
+          }
+        }
+      } else {
+        p->killed = 1;
+      }
+    } else {
+      printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
+      printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
+      p->killed = 1;
+    }
   }
 
   if(p->killed)
