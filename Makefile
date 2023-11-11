@@ -126,6 +126,7 @@ UPROGS=\
 	$U/_ln\
 	$U/_ls\
 	$U/_matmul\
+	$U/_memory-user\
 	$U/_mkdir\
 	$U/_rm\
 	$U/_sh\
