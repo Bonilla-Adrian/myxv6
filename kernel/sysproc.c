@@ -132,5 +132,5 @@ sys_setpriority(void)
 uint64
 sys_freepmem(void)
 {
- return nfreepages();
+ return (nfreepages() * PGSIZE);
 }
