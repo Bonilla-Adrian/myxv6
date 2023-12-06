@@ -109,6 +109,11 @@ int             procinfo(uint64);
 int		getpriority(int pid);
 int		setpriority(int pid, int priority);
 uint64		freepmem(void);
+struct mmr_list* get_mmr_list(int);
+int alloc_mmr_listid(void);
+void dealloc_mmr_listid(int);
+void            mmrlistinit(void);
+
 
 // swtch.S
 void            swtch(struct context*, struct context*);
@@ -175,6 +180,7 @@ uint64          walkaddr(pagetable_t, uint64);
 int             copyout(pagetable_t, uint64, char *, uint64);
 int             copyin(pagetable_t, char *, uint64, uint64);
 int             copyinstr(pagetable_t, char *, uint64, uint64);
+int             mapvpages(pagetable_t, uint64, uint64);
 
 // plic.c
 void            plicinit(void);

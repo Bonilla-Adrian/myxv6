@@ -17,6 +17,7 @@
 #define AGING_THRESHOLD 30  // Number of ticks after which aging is applied
 #define AGING_AMOUNT 1      // Amount by which priority is increased during aging
 #define MAX_PRIORITY 99  // Maximum priority value a process can have
+#define MAX_MMR	10   // maximum number of memory-mapped regions per process
 
 
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
