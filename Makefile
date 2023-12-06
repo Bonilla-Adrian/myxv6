@@ -119,38 +119,20 @@ UPROGS=\
 	$U/_cat\
 	$U/_echo\
 	$U/_forktest\
-	$U/_free\
 	$U/_grep\
 	$U/_init\
 	$U/_kill\
 	$U/_ln\
 	$U/_ls\
-	$U/_matmul\
-	$U/_memory-user\
 	$U/_mkdir\
 	$U/_rm\
 	$U/_sh\
 	$U/_stressfs\
-	$U/_testpriority\
-	$U/_time1\
-	$U/_uptime\
 	$U/_usertests\
 	$U/_grind\
 	$U/_wc\
 	$U/_zombie\
-	$U/_sleep\
-	$U/_ps\
-	$U/_pstree\
-	$U/_pstest\
-	$U/_testschedeq\
-	$U/_testscheddiff\
-	$U/_testschedvar\
-	$U/_testaging1\
-	$U/_testaging2\
 	$U/_private\
-	$U/_prodcons1\
-	$U/_prodcons2\
-	$U/_prodcons3\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

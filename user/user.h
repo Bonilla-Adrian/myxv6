@@ -25,9 +25,8 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int getprocs(struct pstat*);
-int getpriority(int);
-int setpriority(int, int);
-uint64 freepmem(void);
+void* mmap(void*, int, int, int, int, void*);
+int munmap(void*, int);
 
 // ulib.c
 int stat(const char*, struct stat*);

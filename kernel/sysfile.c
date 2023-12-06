@@ -502,7 +502,7 @@ sys_mmap()
     return -1;
   if (argint(2, &prot) < 0)
     return -1;
-  if (argint(3, &flags) < 0)
+  if (argint(3, &flags) <0)
     return -1;
   // Search p->mmr[] for unused location 
   for (int i = 0; i < MAX_MMR; i++) {
@@ -513,8 +513,8 @@ sys_mmap()
   }
   // Fill in struct mmr fields for new mapped region
   if (newmmr) {
-    // Calculate the start address of the new mapped region, make sure it starts on a page boundary
-    start_addr = PGROUNDUP(p->cur_max - length);
+    /* Calculate the start address of the new mapped region, make sure it starts on a page boundary */
+    start_addr = PGROUNDDOWN(p->cur_max - length);
     newmmr->valid = 1;
     newmmr->addr = start_addr;
     newmmr->length = p->cur_max - start_addr;
@@ -585,13 +585,15 @@ munmap(uint64 addr, uint64 length)
 
 // Get arguments and call munmap() helper function
 uint64
-sys_munmap(void)
-{
-  uint64 addr;
-  uint64 length;
+sys_munmap(void) {
+    uint64 addr, length;
 
-  if (argaddr(0, &addr) < 0 || argaddr(1, &length) < 0)
-    return -1;
-  
-  return munmap(addr, length);
+    if (argaddr(0, &addr) < 0)
+        return -1;
+
+    if (argaddr(1, &length) < 0)
+        return -1;
+
+    return 0;
 }
+

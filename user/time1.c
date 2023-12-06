@@ -1,26 +1,36 @@
 #include "kernel/types.h"
+#include "kernel/stat.h"
 #include "user/user.h"
+#include <stddef.h>
 
 int main(int argc, char **argv) {
-    if (argc < 2) {
-        printf("Usage: time1 command [args...]\n");
-        exit(1);
-    }
-
-    int start_time = uptime();
-
-    int pid = fork();
-    if (pid == 0) {
-        // In child
-        exec(argv[1], &argv[1]);
-        printf("time1: command not found\n");
-        exit(1);
-    } else {
-        // In parent
-        wait(0);
-        int end_time = uptime();
-        printf("elapsed time: %d ticks\n", end_time - start_time);
-    }
-
-    exit(0);
+  if(argc<2){
+    fprintf(2, "Usage: time1 <command>\n");
+    exit(1);
+  }
+  
+  uint start_time = uptime();
+  int pid = fork();
+  
+  if (pid == 0) {
+    // In the child process, execute command
+    exec(argv[1], argv + 1); // pass all arguments
+    fprintf(2, "Failed to execute %s\n", argv[1]);
+    exit(1);
+  } else if (pid == -1) {
+    fprintf(2, "Fork failed\n");
+    exit(1);
+  }
+  
+  int status;
+  wait(&status);
+  uint end_time = uptime();
+  
+  if (status == 0) {
+    printf("elapsed time: %d ticks\n", end_time - start_time);
+  } else {
+    fprintf(2, "Command failed\n");
+  }
+  
+  exit(0);
 }

@@ -7,10 +7,6 @@
 #include "pstat.h"
 #include "defs.h"
 
-struct mmr_list mmr_list[NPROC*MAX_MMR];
-
-struct spinlock listid_lock;
-
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
@@ -24,6 +20,9 @@ extern void forkret(void);
 static void freeproc(struct proc *p);
 
 extern char trampoline[]; // trampoline.S
+
+struct mmr_list mmr_list[NPROC*MAX_MMR];
+struct spinlock listid_lock;
 
 // helps ensure that wakeups of wait()ing
 // parents are not lost. helps obey the
@@ -124,8 +123,6 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
-  p->readytime = 0;  // Initialize readytime to 0
-  p->wait_ticks = 0; //Initialize wait_ticks to 0
 
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
@@ -242,9 +239,6 @@ userinit(void)
   uvminit(p->pagetable, initcode, sizeof(initcode));
   p->sz = PGSIZE;
 
-  // Initialize the maximum address of free virtual memory
-  p->cur_max = MAXVA - 2*PGSIZE;
-
   // prepare for the very first "return" from kernel to user.
   p->trapframe->epc = 0;      // user program counter
   p->trapframe->sp = PGSIZE;  // user stack pointer
@@ -253,7 +247,8 @@ userinit(void)
   p->cwd = namei("/");
 
   p->state = RUNNABLE;
-  p->readytime = ticks;
+
+  p->cur_max = MAXVA - 2*PGSIZE;
 
   release(&p->lock);
 }
@@ -299,8 +294,6 @@ fork(void)
     return -1;
   }
   np->sz = p->sz;
-
-  // Propagate cur_max to the child process
   np->cur_max = p->cur_max;
 
   // copy saved user registers.
@@ -320,12 +313,13 @@ fork(void)
   pid = np->pid;
 
   release(&np->lock);
+
   acquire(&wait_lock);
   np->parent = p;
   release(&wait_lock);
+
   acquire(&np->lock);
   np->state = RUNNABLE;
-  np->readytime = ticks;
   release(&np->lock);
 
   return pid;
@@ -443,7 +437,7 @@ wait(uint64 addr)
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
-//  - choose a process to run based on the scheduling policy defined in param.h.
+//  - choose a process to run.
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
@@ -455,62 +449,24 @@ scheduler(void)
   
   c->proc = 0;
   for(;;){
-    // Enable interrupts on this processor to avoid deadlock.
+    // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
 
-    if (SCHED_TYPE == SCHED_DEFAULT) {
-      // Default scheduling: Round-robin.
-      for(p = proc; p < &proc[NPROC]; p++) {
-        acquire(&p->lock);
-        if(p->state == RUNNABLE) {
-          // Switch to chosen process. It is the process's job
-          // to release its lock and then reacquire it
-          // before jumping back to us.
-          p->state = RUNNING;
-          c->proc = p;
-          swtch(&c->context, &p->context);
-
-          // Process is done running for now.
-          // It should have changed its p->state before coming back.
-          c->proc = 0;
-        }
-        release(&p->lock);
-      }
-    } else if (SCHED_TYPE == SCHED_PRIORITY) {
-            struct proc *highestPriorityProc = 0;
-            for(p = proc; p < &proc[NPROC]; p++) {
-                acquire(&p->lock);
-                if(p->state == RUNNABLE) {
-                    p->wait_ticks++;  // Increment wait_ticks for each runnable process
-
-                    // If a process has been waiting for more than a threshold, increase its priority
-                    if(p->wait_ticks > AGING_THRESHOLD) {
-                        if(p->priority < MAX_PRIORITY) {
-                            p->priority++;
-                        }
-                        p->wait_ticks = 0;  // Reset wait_ticks after increasing priority
-                    }
-
-                    if (!highestPriorityProc || p->priority > highestPriorityProc->priority) {
-                        highestPriorityProc = p;
-                    }
-                } else {
-                    p->wait_ticks = 0;  // Reset wait_ticks if the process is not runnable
-                }
-                release(&p->lock);
-      }
-      if (highestPriorityProc) {
-        // Switch to the highest priority process.
-        acquire(&highestPriorityProc->lock);
-        highestPriorityProc->state = RUNNING;
-        c->proc = highestPriorityProc;
-        swtch(&c->context, &highestPriorityProc->context);
+    for(p = proc; p < &proc[NPROC]; p++) {
+      acquire(&p->lock);
+      if(p->state == RUNNABLE) {
+        // Switch to chosen process.  It is the process's job
+        // to release its lock and then reacquire it
+        // before jumping back to us.
+        p->state = RUNNING;
+        c->proc = p;
+        swtch(&c->context, &p->context);
 
         // Process is done running for now.
         // It should have changed its p->state before coming back.
         c->proc = 0;
-        release(&highestPriorityProc->lock);
       }
+      release(&p->lock);
     }
   }
 }
@@ -549,7 +505,6 @@ yield(void)
   struct proc *p = myproc();
   acquire(&p->lock);
   p->state = RUNNABLE;
-  p->readytime = ticks;
   sched();
   release(&p->lock);
 }
@@ -618,7 +573,6 @@ wakeup(void *chan)
       acquire(&p->lock);
       if(p->state == SLEEPING && p->chan == chan) {
         p->state = RUNNABLE;
-	p->readytime = ticks;
       }
       release(&p->lock);
     }
@@ -640,7 +594,6 @@ kill(int pid)
       if(p->state == SLEEPING){
         // Wake process from sleep().
         p->state = RUNNABLE;
-	p->readytime = ticks;
       }
       release(&p->lock);
       return 0;
@@ -736,33 +689,6 @@ procinfo(uint64 addr)
     addr += sizeof(procinfo);
   }
   return nprocs;
-}
-
-int
-getpriority(int pid)
-{
-  struct proc *p;
-  for(p = proc; p < &proc[NPROC]; p++){
-    if(p->pid == pid){
-      return p->priority;
-    }
-  }
-  return -1; // Return -1 if process not found
-}
-
-int
-setpriority(int pid, int priority)
-{
-  struct proc *p;
-  if(priority < 0 || priority > 49) // Check for valid priority range
-    return -1;
-  for(p = proc; p < &proc[NPROC]; p++){
-    if(p->pid == pid){
-      p->priority = priority;
-      return 0; // Success
-    }
-  }
-  return -1; // Return -1 if process not found
 }
 
 // Initialize mmr_list

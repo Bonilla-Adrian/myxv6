@@ -11,13 +11,6 @@
 #define NBUF         (MAXOPBLOCKS*3)  // size of disk block cache
 #define FSSIZE       1000  // size of file system in blocks
 #define MAXPATH      128   // maximum file path name
-#define SCHED_DEFAULT  0   // Default round-robin scheduling policy
-#define SCHED_PRIORITY 1   // Priority-based scheduling policy
-#define SCHED_TYPE SCHED_PRIORITY  // Setting for which Scheduler to use (round-robin or priority)
-#define AGING_THRESHOLD 30  // Number of ticks after which aging is applied
-#define AGING_AMOUNT 1      // Amount by which priority is increased during aging
-#define MAX_PRIORITY 99  // Maximum priority value a process can have
-#define MAX_MMR	10   // maximum number of memory-mapped regions per process
-
+#define MAX_MMR		10 // maximum number of memory-mapped regions per process
 
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };

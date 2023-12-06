@@ -1,10 +1,7 @@
 struct pstat {
-  int pid;           // Process ID
+  int pid;     // Process ID
   enum procstate state;  // Process state
-  uint64 size;       // Size of process memory (bytes)
-  int ppid;          // Parent process ID
-  char name[16];     // Parent command name
-  int priority;      // Process priority
-  uint64 readytime;  // Time when the process became RUNNABLE
+  uint64 size;     // Size of process memory (bytes)
+  int ppid;        // Parent process ID
+  char name[16];   // Parent command name
 };
-

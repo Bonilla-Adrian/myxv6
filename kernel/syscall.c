@@ -105,9 +105,6 @@ extern uint64 sys_wait(void);
 extern uint64 sys_write(void);
 extern uint64 sys_uptime(void);
 extern uint64 sys_getprocs(void);
-extern uint64 sys_getpriority(void);
-extern uint64 sys_setpriority(void);
-extern uint64 sys_freepmem(void);
 extern uint64 sys_mmap(void);
 extern uint64 sys_munmap(void);
 
@@ -134,11 +131,8 @@ static uint64 (*syscalls[])(void) = {
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
 [SYS_getprocs]   sys_getprocs,
-[SYS_getpriority]   sys_getpriority,
-[SYS_setpriority]   sys_setpriority,
-[SYS_freepmem] sys_freepmem,
-[SYS_mmap]    sys_mmap,
-[SYS_munmap]  sys_munmap,
+[SYS_mmap]     sys_mmap,
+[SYS_munmap]   sys_munmap,
 };
 
 void

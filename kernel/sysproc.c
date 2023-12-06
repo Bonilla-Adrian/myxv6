@@ -41,26 +41,16 @@ sys_wait(void)
 uint64
 sys_sbrk(void)
 {
+  int addr;
   int n;
 
   if(argint(0, &n) < 0)
     return -1;
-  
-  // Get the current process's struct proc
-  struct proc *p = myproc();
-  
-  // Store the old size of the process's virtual memory space
-  // This is the value that will be returned by the sbrk() call
-  int oldsz = p->sz;
-  
-  // Update the process's size (sz) by adding the size increment (n)
-  // This expands the virtual memory space without allocating physical memory
-  p->sz += n;
-
-  // Return the old size of the virtual memory space
-  return oldsz;
+  addr = myproc()->sz;
+  if(growproc(n) < 0)
+    return -1;
+  return addr;
 }
-
 
 uint64
 sys_sleep(void)
@@ -116,31 +106,4 @@ sys_getprocs(void)
   if (argaddr(0, &addr) < 0)
     return -1;
   return(procinfo(addr));
-}
-
-// System call to get the priority of a process by its PID
-uint64
-sys_getpriority(void)
-{
-  int pid;
-  if(argint(0, &pid) < 0)
-    return -1;
-  return getpriority(pid);
-}
-
-// System call to set the priority of a process by its PID
-uint64
-sys_setpriority(void)
-{
-  int pid, priority;
-  if(argint(0, &pid) < 0 || argint(1, &priority) < 0)
-    return -1;
-  return setpriority(pid, priority);
-}
-
-//System call that returns the amount free physical memory
-uint64
-sys_freepmem(void)
-{
- return (nfreepages() * PGSIZE);
 }

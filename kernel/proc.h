@@ -88,8 +88,8 @@ struct mmr_list {
 
 // struct for node in list of processes that share a mapped memory region
 struct mmr_node {
-  int       listid;                        // index into mmr_list array with per-list locks
-  struct proc *proc;              // this process so it can be found easily
+  int       listid;       // index into mmr_list array with per-list locks
+  struct proc *proc;      // this process so it can be found easily
   struct mmr_node *next;  // next process in family
   struct mmr_node *prev;  // previous process in family
 };
@@ -106,9 +106,14 @@ struct mmr {
   struct mmr_node mmr_family;   // my node in the mmr family
 };
 
+
 // Per-process state
 struct proc {
   struct spinlock lock;
+  struct mmr mmr[MAX_MMR];     // Array of memory-mapped regions
+  uint64 cur_max;              // Max address of free virtual memory, 
+                    // initialize to MAXVA-2*PGSIZE
+
 
   // p->lock must be held when using these:
   enum procstate state;        // Process state
@@ -129,15 +134,4 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
-  struct mmr mmr[MAX_MMR];     // Array of memory-mapped regions
-  uint64 cur_max;              // Declaration of cur_max
-
-  // Added fields for priority-based scheduling
-  int priority;                // Process priority (0 to 49)
-  uint64 readytime;            // Time when the process became ready to run
-
-  //Number of ticks the process has been waiting
-  int wait_ticks;
-
 };
-
