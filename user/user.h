@@ -28,6 +28,11 @@ int getprocs(struct pstat*);
 int getpriority(int);
 int setpriority(int, int);
 uint64 freepmem(void);
+// mmap system call
+void* mmap(void *addr, uint64 length, int prot, int flags, int fd, uint64 offset);
+
+// munmap system call
+int munmap(void *addr, uint64 length);
 
 // ulib.c
 int stat(const char*, struct stat*);
