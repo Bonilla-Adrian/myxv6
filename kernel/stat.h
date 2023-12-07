@@ -6,7 +6,6 @@
 #define MAP_SHARED 0x01 /* Share Changes */
 #define MAP_PRIVATE 0x02 /* Changes are private */
 #define MAP_ANONYMOUS 0x20 /* No associated file */
-#define NULL ((void *)0)
 
 struct stat {
   int dev;     // File system's disk device
