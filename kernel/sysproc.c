@@ -107,3 +107,109 @@ sys_getprocs(void)
     return -1;
   return(procinfo(addr));
 }
+
+int
+sys_sem_init(void){
+	uint64 s;
+	int index;
+	int value;
+	int pshared;
+	//struct semtab semtable;
+	
+	//semaphore failed
+	if(argaddr(0,&s) < 0){
+		return -1;
+	}
+	//pshared failed
+	if(argint(1,&pshared) < 0){
+		return -1;
+	}
+	//value failed
+	if(argint(2,&value) < 0){
+		return -1;
+	}
+	//making sure pshared is not equal to zero
+	if(pshared == 0){
+		return -1;
+	}
+	//initialization
+	index = semalloc();
+	semtable.sem[index].count = value;
+	//copyout 
+	if(copyout(myproc()->pagetable, s, (char*)&index, sizeof(index)) <0){
+		return -1;
+	}
+	
+	return 0;
+}
+
+int
+sys_sem_destroy(void){
+	uint64 s;
+	int addr;
+	//semaphore failed
+	if(argaddr(0, &s) < 0){
+		return -1;
+	}
+	
+	//destroy
+	acquire(&semtable.lock);
+	
+	if(copyin(myproc()->pagetable, (char*)&addr, s, sizeof(int))<0){
+		release(&semtable.lock);
+		return -1;
+	}
+	semdealloc(addr);
+	release(&semtable.lock);
+	return 0;
+}
+
+int
+sys_sem_wait(void){
+	uint64 s;
+	int addr;
+	//semaphore failed
+	if(argaddr(0, &s) < 0){
+		return -1;
+	}
+	//get address
+	copyin(myproc()->pagetable, (char*)&addr, s, sizeof(int));
+	
+	acquire(&semtable.sem[addr].lock);
+	//decrement
+	if(semtable.sem[addr].count > 0){
+		semtable.sem[addr].count--;	
+		release(&semtable.sem[addr].lock);
+		return 0;
+	}else{
+		while(semtable.sem[addr].count == 0){
+			sleep((void*)&semtable.sem[addr], &semtable.sem[addr].lock);
+			//release(&semtable.sem[addr].lock);
+		}
+		semtable.sem[addr].count--;
+		release(&semtable.sem[addr].lock);
+	}
+	
+	return 0;
+}
+
+int
+sys_sem_post(void){
+	uint64 s;
+	int addr;
+	//semaphore failed
+	if(argaddr(0, &s) < 0){
+		return -1;
+	}
+	//get address
+	copyin(myproc()->pagetable, (char*)&addr, s, sizeof(int));
+	
+	acquire(&semtable.sem[addr].lock);
+	//increment
+	semtable.sem[addr].count++;
+	wakeup((void*)&semtable.sem[addr]);
+	
+	release(&semtable.sem[addr].lock);
+	
+	return 0;
+}
