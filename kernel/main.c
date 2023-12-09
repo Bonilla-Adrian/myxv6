@@ -42,5 +42,6 @@ main()
   }
 
   scheduler();  
-  mmrlistinit();   // memory-mapped region list      
+  mmrlistinit();   // memory-mapped region list
+  seminit();       // semaphore table
 }
